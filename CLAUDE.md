@@ -43,7 +43,7 @@ It is the author's **third project** ("level 3"). Earlier projects:
 
 ## Roadmap (version 1.0)
 1. ✅ Node.js installed, project folder created.
-2. MCP server with one tool `outfit_today`, tested with MCP Inspector on this PC.
+2. ✅ MCP server with one tool `outfit_today`, tested with MCP Inspector on this PC (`npm start`, `npm test`, `npm run inspect`).
 3. Test inside ChatGPT through a temporary HTTPS tunnel.
 4. Neon card UI inside ChatGPT.
 5. Host the server online (HTTPS, own domain).

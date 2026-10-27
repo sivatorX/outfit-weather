@@ -2,12 +2,18 @@
   "name": "outfit-weather",
   "version": "1.0.0",
   "description": "ChatGPT plugin: what to wear today, from a precise whole-day forecast",
-  "main": "index.js",
+  "main": "src/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/server.js",
+    "test": "node --test",
+    "inspect": "npx @modelcontextprotocol/inspector"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "zod": "^4.6.7"
+  }
 }
