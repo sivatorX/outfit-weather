@@ -41,10 +41,17 @@ It is the author's **third project** ("level 3"). Earlier projects:
 - GitHub CLI (not on PATH): `/c/Users/armin/AppData/Local/Microsoft/WinGet/Packages/GitHub.cli_Microsoft.Winget.Source_8wekyb3d8bbwe/bin/gh.exe` (logged in as sivatorX).
 - Always say what you checked before saying something works.
 
+## Testing in ChatGPT (temporary tunnel)
+- Tunnel: cloudflared, installed at `C:\Program Files (x86)\cloudflared\cloudflared.exe`. Quick tunnels need no account:
+  `"/c/Program Files (x86)/cloudflared/cloudflared.exe" tunnel --no-autoupdate --url http://localhost:3000`
+  The `https://<random>.trycloudflare.com` address changes on every start, so update it in ChatGPT each time.
+- ChatGPT: Settings → Plugins → + → Add custom MCP server. Developer mode is no longer needed. Connection: Server URL (not "Tunnel", that is OpenAI's own tunnel), URL ends with `/mcp`, Authentication: none.
+- The server logs one line per request; ChatGPT shows up as `openai-mcp/1.0.0`. ChatGPT sometimes answers from web search instead of the tool: tell it "Use Outfit Weather".
+
 ## Roadmap (version 1.0)
 1. ✅ Node.js installed, project folder created.
 2. ✅ MCP server with one tool `outfit_today`, tested with MCP Inspector on this PC (`npm start`, `npm test`, `npm run inspect`).
-3. Test inside ChatGPT through a temporary HTTPS tunnel.
+3. ✅ Tested inside ChatGPT through a temporary HTTPS tunnel (2026-10-27): ChatGPT called `outfit_today` and showed our numbers.
 4. Neon card UI inside ChatGPT.
 5. Host the server online (HTTPS, own domain).
 6. Website: about page, privacy policy, support contact.

@@ -69,6 +69,8 @@ function buildMcpServer() {
 
 const httpServer = createServer(async (req, res) => {
   const path = new URL(req.url, "http://localhost").pathname;
+  // One line per request, so we can see if ChatGPT really calls us
+  console.log(`${new Date().toISOString()} ${req.method} ${path} ${req.headers["user-agent"] ?? ""}`);
 
   if (path === "/" && req.method === "GET") {
     res.writeHead(200, { "Content-Type": "text/plain; charset=utf-8" });
