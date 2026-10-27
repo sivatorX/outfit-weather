@@ -1,0 +1,13 @@
+{
+  "name": "outfit-weather",
+  "version": "1.0.0",
+  "description": "ChatGPT plugin: what to wear today, from a precise whole-day forecast",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module"
+}

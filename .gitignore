@@ -1,0 +1,5 @@
+# Installed packages: npm can download them again from package.json
+node_modules/
+
+# Secrets live here, never on GitHub
+.env

@@ -1,0 +1,52 @@
+# Outfit Weather: project guide for Claude
+
+## What this project is
+A **ChatGPT plugin** (OpenAI's name for apps in the ChatGPT directory) that answers "what should I wear?" with a precise, whole-day weather forecast and a nice neon card.
+It is the author's **third project** ("level 3"). Earlier projects:
+- Level 1: Battleship game https://github.com/sivatorX/neon-armada
+- Level 2: Weather app https://github.com/sivatorX/neon-weather (its `insights.js`, 3-model averaging and WMO codes are reused here)
+
+**Main learning goals:** a real server (Node.js), MCP (how ChatGPT calls your code), hosting with HTTPS, publishing to the ChatGPT plugin directory. Later: accounts, database, payments.
+
+## Product (version 1.0 first, the rest later)
+- **v1.0 (free):** one tool `outfit_today`: what an adult should wear today/tomorrow in a city, looking at the WHOLE day (morning → evening), "feels like", rain/snow/wind, from the 3-model average (ECMWF, ICON, GFS via Open-Meteo). Answer = short text + a card.
+- Later free tools: `outfit_trip` (packing list for several days), `outfit_event` (an event at a given time), child profile.
+- Later paid features ONLY on our own website (morning notifications, family profiles, my wardrobe). Users sign in to that paid account inside ChatGPT.
+- Languages: English first, then Russian and Kyrgyz.
+
+## OpenAI rules we must follow (developers.openai.com/plugins, read 2026-10-27; re-check before submitting)
+- No selling inside ChatGPT: "plugins may conduct commerce only for physical goods"; subscriptions/digital goods are not allowed. Allowed: "Users may sign in to an existing paid account and access features already included in their subscription"; a link to an informational plans page (never to checkout).
+- No ads, no "trial or demo" plugins. Do not ask for raw location/coordinates in tool inputs: ask for a city name.
+- Submission needs: verified OpenAI organization (individual or business), privacy policy URL, support contact, public HTTPS MCP server we host ourselves, domain verification, 5 positive + 3 negative test cases, demo video.
+
+## About the author (important)
+- A beginner who wants to become a professional developer. **Teach, don't just code.**
+- **Always answer in Russian.** Simple words, short sentences, real-life examples. Code and names stay in English.
+- Explain each new idea (server, MCP, npm, package.json, environment variables, HTTPS, deploy) in 1–3 simple sentences the first time.
+- Modes: "I'll do it myself" (one small step at a time, then check) or "Do it yourself" (write, test, then explain).
+- Edits in **Cursor**; unsaved changes there can overwrite files on disk.
+
+## Tech choices
+- **Node.js** (installed: v24 LTS at `C:\Program Files\nodejs`). Plain JavaScript (ES modules), no TypeScript at first, no frameworks unless the MCP SDK needs them.
+- Weather data: Open-Meteo (free, no key). Never put secret keys in the repo; use environment variables (`.env`, in `.gitignore`).
+- Keep the weather logic pure (no network inside), so it can be tested without the internet.
+
+## Code style
+- 2-space indent, `const`/`let`, no `var`, clear English names, short "why" comments.
+- Validate everything from outside (tool inputs from ChatGPT, API answers).
+- Every network call: timeout + friendly error message.
+
+## Workflow
+- Small steps; commit after each finished step. git works only in **bash**, not PowerShell.
+- GitHub CLI (not on PATH): `/c/Users/armin/AppData/Local/Microsoft/WinGet/Packages/GitHub.cli_Microsoft.Winget.Source_8wekyb3d8bbwe/bin/gh.exe` (logged in as sivatorX).
+- Always say what you checked before saying something works.
+
+## Roadmap (version 1.0)
+1. ✅ Node.js installed, project folder created.
+2. MCP server with one tool `outfit_today`, tested with MCP Inspector on this PC.
+3. Test inside ChatGPT through a temporary HTTPS tunnel.
+4. Neon card UI inside ChatGPT.
+5. Host the server online (HTTPS, own domain).
+6. Website: about page, privacy policy, support contact.
+7. Submit to the ChatGPT plugin directory.
+8. Later: accounts and paid features on the website.
