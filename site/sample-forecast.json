@@ -1,0 +1,23 @@
+{
+  "place": "Bishkek, Kyrgyzstan",
+  "day": "tomorrow",
+  "date": "2026-10-29",
+  "summary": {
+    "from": "07:00", "to": "21:00",
+    "minTemperature": 4.6, "maxTemperature": 13.2, "minApparent": 1.4, "maxApparent": 10.8,
+    "maxRainChance": 65, "totalPrecipitation": 2.4, "totalSnowfall": 0,
+    "maxWind": 4.1, "maxGusts": 8.3, "hasSnow": false, "hasStorm": false, "firstWetTime": "16:00",
+    "parts": [
+      { "name": "morning", "temperature": 5.8, "apparent": 2.6, "weather": "mostly clear" },
+      { "name": "afternoon", "temperature": 12.7, "apparent": 10.4, "weather": "partly cloudy" },
+      { "name": "evening", "temperature": 8.1, "apparent": 5.2, "weather": "light rain" }
+    ]
+  },
+  "outfit": {
+    "top": "sweater and a warm jacket",
+    "bottom": "jeans or warm trousers",
+    "shoes": "closed boots or warm sneakers",
+    "accessories": ["umbrella", "light hat", "gloves"],
+    "notes": ["Cold morning, warm afternoon: wear layers you can take off.", "Rain from 16:00: take an umbrella."]
+  }
+}

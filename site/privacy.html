@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy · Outfit Weather</title>
+<meta name="description" content="What data the Outfit Weather ChatGPT plugin receives and how it is used.">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="icon" href="/icon-64.png" type="image/png" sizes="64x64">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="/"><img src="/icon.svg" alt="" width="36" height="36">Outfit Weather</a>
+    <nav class="nav">
+      <a href="/">Home</a>
+      <a href="/privacy" aria-current="page">Privacy</a>
+      <a href="/support">Support</a>
+    </nav>
+  </header>
+
+  <main class="doc">
+    <h1>Privacy Policy</h1>
+    <p class="date">Last updated: October 28, 2026</p>
+
+    <p>
+      This policy explains what data the Outfit Weather plugin for ChatGPT ("Outfit Weather", "we")
+      receives and what we do with it. The short version: we only get the city name and the day you ask about,
+      we use them to get a weather forecast, and we do not store them.
+    </p>
+
+    <h2>What we receive</h2>
+    <p>When ChatGPT uses Outfit Weather, it sends our server:</p>
+    <ul>
+      <li>the <b>city name</b> you asked about (for example "Bishkek"),</li>
+      <li>the <b>day</b>: "today" or "tomorrow".</li>
+    </ul>
+    <p>
+      We do not receive your name, email, account details, chat history or your precise location.
+      We never ask for GPS coordinates.
+    </p>
+
+    <h2>How we use it</h2>
+    <ul>
+      <li>We send the city name to the <a href="https://open-meteo.com/">Open-Meteo</a> geocoding service to find its coordinates.</li>
+      <li>We send those coordinates to the Open-Meteo forecast service to get the weather.</li>
+      <li>We turn the forecast into outfit advice and send it back to ChatGPT.</li>
+    </ul>
+    <p>That is the only purpose. We do not use the data for advertising, profiling or training AI models.</p>
+
+    <h2>What we store</h2>
+    <ul>
+      <li><b>We do not store</b> the cities you ask about or the answers.</li>
+      <li>
+        Our hosting provider (<a href="https://render.com/privacy">Render</a>) keeps short technical logs for a limited time:
+        the time of a request, the page address (such as <code>/mcp</code>) and the name of the app that made it.
+        These logs do not contain the city name. We use them only to keep the service working.
+      </li>
+      <li>We use no cookies, no analytics and no tracking on the plugin or this website.</li>
+    </ul>
+
+    <h2>Who else sees data</h2>
+    <ul>
+      <li><b>Open-Meteo</b> receives the city name and coordinates to answer weather requests (see the <a href="https://open-meteo.com/en/terms">Open-Meteo terms</a>).</li>
+      <li><b>Render</b> hosts our server.</li>
+      <li><b>OpenAI</b> runs ChatGPT. Your conversation with ChatGPT is covered by <a href="https://openai.com/policies/privacy-policy/">OpenAI's privacy policy</a>, not this one.</li>
+    </ul>
+    <p>We do not sell or share data with anyone else.</p>
+
+    <h2>Children</h2>
+    <p>Outfit Weather is not directed at children under 13, and we do not knowingly collect any personal data from them.</p>
+
+    <h2>Changes</h2>
+    <p>If we change what data we receive or how we use it, we will update this page and the date at the top.</p>
+
+    <h2>Contact</h2>
+    <p>Questions about privacy: <a href="mailto:{{SUPPORT_EMAIL}}">{{SUPPORT_EMAIL}}</a>.</p>
+  </main>
+
+  <footer class="footer">
+    <span>© 2026 Outfit Weather</span>
+    <span><a href="/">Home</a> · <a href="/support">Support</a> · <a href="https://github.com/sivatorX/outfit-weather">GitHub</a></span>
+  </footer>
+</div>
+</body>
+</html>

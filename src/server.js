@@ -16,9 +16,36 @@ const CARD_URI = "ui://widget/outfit-card-v2.html";
 const CARD_MIME_TYPE = "text/html;profile=mcp-app";
 const CARD_HTML = readFileSync(new URL("./widget/outfit-card.html", import.meta.url), "utf8");
 
-// The plugin icon. Files are read once at start; the public address is where Render serves us.
+// The website and the plugin icon. Files are read once at start; the public address is where Render serves us.
 const PUBLIC_URL = process.env.PUBLIC_URL || "https://outfit-weather.onrender.com";
+// The support email shown on the website. Kept in one place so it is easy to change.
+const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || "support@example.com";
+
+// Read a website page and fill in the {{...}} blanks
+function sitePage(name) {
+  return readFileSync(new URL(`../site/${name}`, import.meta.url), "utf8")
+    .replaceAll("{{SUPPORT_EMAIL}}", SUPPORT_EMAIL)
+    .replaceAll("{{MCP_URL}}", `${PUBLIC_URL}/mcp`);
+}
+
+// The real card with an example forecast, for the home page. window.openai is how the card
+// can get data without ChatGPT, so we set it before the card's own script runs.
+const SAMPLE_FORECAST = readFileSync(new URL("../site/sample-forecast.json", import.meta.url), "utf8");
+const CARD_PREVIEW_HTML = CARD_HTML.replace(
+  "<script>",
+  "<script>window.openai = { toolOutput: " +
+    JSON.stringify(JSON.parse(SAMPLE_FORECAST)) +
+    // The card reports its height; we pass it to the home page so the frame fits the card exactly
+    ', notifyIntrinsicHeight: (height) => parent.postMessage({ type: "card-height", height }, "*") };</script>\n<script>'
+);
+
+const HTML = "text/html; charset=utf-8";
 const STATIC_FILES = {
+  "/": { type: HTML, body: sitePage("index.html") },
+  "/privacy": { type: HTML, body: sitePage("privacy.html") },
+  "/support": { type: HTML, body: sitePage("support.html") },
+  "/card-preview": { type: HTML, body: CARD_PREVIEW_HTML },
+  "/style.css": { type: "text/css; charset=utf-8", body: sitePage("style.css") },
   "/icon-64.png": { type: "image/png", body: readFileSync(new URL("../assets/icon-64.png", import.meta.url)) },
   "/icon-128.png": { type: "image/png", body: readFileSync(new URL("../assets/icon-128.png", import.meta.url)) },
   "/icon.png": { type: "image/png", body: readFileSync(new URL("../assets/icon-512.png", import.meta.url)) },
@@ -118,16 +145,12 @@ const httpServer = createServer(async (req, res) => {
   // One line per request, so we can see if ChatGPT really calls us
   console.log(`${new Date().toISOString()} ${req.method} ${path} ${req.headers["user-agent"] ?? ""}`);
 
-  if (path === "/" && req.method === "GET") {
-    res.writeHead(200, { "Content-Type": "text/plain; charset=utf-8" });
-    res.end("Outfit Weather MCP server is running. MCP endpoint: /mcp\n");
-    return;
-  }
   const file = STATIC_FILES[path];
-  if (file && req.method === "GET") {
-    // The icon rarely changes, so browsers may keep it for a day
-    res.writeHead(200, { "Content-Type": file.type, "Cache-Control": "public, max-age=86400" });
-    res.end(file.body);
+  if (file && (req.method === "GET" || req.method === "HEAD")) {
+    // Images rarely change, so browsers may keep them for a day; pages and styles only for 5 minutes
+    const maxAge = file.type.startsWith("image/") ? 86400 : 300;
+    res.writeHead(200, { "Content-Type": file.type, "Cache-Control": `public, max-age=${maxAge}` });
+    res.end(req.method === "HEAD" ? undefined : file.body);
     return;
   }
   if (path !== "/mcp") {

@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Support · Outfit Weather</title>
+<meta name="description" content="Help and contact for the Outfit Weather ChatGPT plugin.">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="icon" href="/icon-64.png" type="image/png" sizes="64x64">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="/"><img src="/icon.svg" alt="" width="36" height="36">Outfit Weather</a>
+    <nav class="nav">
+      <a href="/">Home</a>
+      <a href="/privacy">Privacy</a>
+      <a href="/support" aria-current="page">Support</a>
+    </nav>
+  </header>
+
+  <main class="doc">
+    <h1>Support</h1>
+    <p class="date">We usually answer within 2 working days.</p>
+
+    <div class="panel">
+      <p style="margin:0">
+        Email: <a href="mailto:{{SUPPORT_EMAIL}}"><b>{{SUPPORT_EMAIL}}</b></a><br>
+        Please tell us the city, the day you asked about and what went wrong. A screenshot helps a lot.
+      </p>
+    </div>
+
+    <h2>Common questions</h2>
+
+    <h3>ChatGPT answered without the card</h3>
+    <p>
+      ChatGPT sometimes uses web search instead of the plugin. Make sure Outfit Weather is turned on in the chat
+      (the <b>+</b> button under the message box) and start your question with <code>Use Outfit Weather:</code>.
+    </p>
+
+    <h3>The first answer is slow</h3>
+    <p>
+      Our server sleeps when nobody has used it for a while. The first request can take up to a minute;
+      after that, answers are fast.
+    </p>
+
+    <h3>"I could not find a city"</h3>
+    <p>Check the spelling or add the country, for example <code>Paris, France</code> or <code>Osh, Kyrgyzstan</code>.</p>
+
+    <h3>"The day is already over"</h3>
+    <p>We look at the day from 07:00 to 21:00 local time. In the late evening, ask about tomorrow.</p>
+
+    <h3>How accurate is it?</h3>
+    <p>
+      We average three weather models (ECMWF, ICON and GFS) through <a href="https://open-meteo.com/">Open-Meteo</a>,
+      which is usually closer to the truth than any single model. Weather can still change, so check again in the morning.
+    </p>
+  </main>
+
+  <footer class="footer">
+    <span>© 2026 Outfit Weather</span>
+    <span><a href="/">Home</a> · <a href="/privacy">Privacy</a> · <a href="https://github.com/sivatorX/outfit-weather">GitHub</a></span>
+  </footer>
+</div>
+</body>
+</html>
