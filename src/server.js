@@ -19,10 +19,15 @@ const CARD_HTML = readFileSync(new URL("./widget/outfit-card.html", import.meta.
 // The plugin icon. Files are read once at start; the public address is where Render serves us.
 const PUBLIC_URL = process.env.PUBLIC_URL || "https://outfit-weather.onrender.com";
 const STATIC_FILES = {
+  "/icon-64.png": { type: "image/png", body: readFileSync(new URL("../assets/icon-64.png", import.meta.url)) },
+  "/icon-128.png": { type: "image/png", body: readFileSync(new URL("../assets/icon-128.png", import.meta.url)) },
   "/icon.png": { type: "image/png", body: readFileSync(new URL("../assets/icon-512.png", import.meta.url)) },
   "/icon.svg": { type: "image/svg+xml", body: readFileSync(new URL("../assets/icon.svg", import.meta.url)) },
 };
+// Small sizes first: some clients reject big icons
 const ICONS = [
+  { src: `${PUBLIC_URL}/icon-64.png`, mimeType: "image/png", sizes: ["64x64"] },
+  { src: `${PUBLIC_URL}/icon-128.png`, mimeType: "image/png", sizes: ["128x128"] },
   { src: `${PUBLIC_URL}/icon.png`, mimeType: "image/png", sizes: ["512x512"] },
   { src: `${PUBLIC_URL}/icon.svg`, mimeType: "image/svg+xml", sizes: ["any"] },
 ];
