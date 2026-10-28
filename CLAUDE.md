@@ -41,7 +41,12 @@ It is the author's **third project** ("level 3"). Earlier projects:
 - GitHub CLI (not on PATH): `/c/Users/armin/AppData/Local/Microsoft/WinGet/Packages/GitHub.cli_Microsoft.Winget.Source_8wekyb3d8bbwe/bin/gh.exe` (logged in as sivatorX).
 - Always say what you checked before saying something works.
 
-## Testing in ChatGPT (temporary tunnel)
+## Hosting (Render)
+- Web Service `outfit-weather`, Free instance, build `npm ci`, start `npm start`; Render sets `PORT`. `render.yaml` holds the same settings.
+- Free plan sleeps after 15 minutes without requests; the first request then takes up to about a minute.
+- After changing tools or the card: push, wait for "Live", then Refresh the plugin in ChatGPT. The address never changes.
+
+## Testing in ChatGPT (temporary tunnel, only for local experiments now)
 - Tunnel: cloudflared, installed at `C:\Program Files (x86)\cloudflared\cloudflared.exe`. Quick tunnels need no account:
   `"/c/Program Files (x86)/cloudflared/cloudflared.exe" tunnel --no-autoupdate --url http://localhost:3000`
   The `https://<random>.trycloudflare.com` address changes on every start, so update it in ChatGPT each time.
@@ -53,7 +58,7 @@ It is the author's **third project** ("level 3"). Earlier projects:
 2. ✅ MCP server with one tool `outfit_today`, tested with MCP Inspector on this PC (`npm start`, `npm test`, `npm run inspect`).
 3. ✅ Tested inside ChatGPT through a temporary HTTPS tunnel (2026-10-27): ChatGPT called `outfit_today` and showed our numbers.
 4. Neon card UI inside ChatGPT.
-5. Host the server online (HTTPS, own domain).
+5. 🟡 Hosted on Render (free plan): https://outfit-weather.onrender.com/mcp, repo `sivatorX/outfit-weather` (public). Every push to `main` redeploys. Still to do: own domain.
 6. Website: about page, privacy policy, support contact.
 7. Submit to the ChatGPT plugin directory.
 8. Later: accounts and paid features on the website.
