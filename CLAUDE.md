@@ -47,9 +47,9 @@ It is the author's **third project** ("level 3"). Earlier projects:
 - After changing tools or the card: push, wait for "Live", then Refresh the plugin in ChatGPT. The address never changes.
 
 ## Testing in ChatGPT (temporary tunnel, only for local experiments now)
-- Tunnel: cloudflared, installed at `C:\Program Files (x86)\cloudflared\cloudflared.exe`. Quick tunnels need no account:
+- Tunnel: cloudflared (uninstalled 2026-10-28; reinstall with `winget install --id Cloudflare.cloudflared -e`, uninstall needs admin). Quick tunnels need no account:
   `"/c/Program Files (x86)/cloudflared/cloudflared.exe" tunnel --no-autoupdate --url http://localhost:3000`
-  The `https://<random>.trycloudflare.com` address changes on every start, so update it in ChatGPT each time.
+  The `https://<random>.trycloudflare.com` address changes on every start and can die after some hours. Prefer Render.
 - ChatGPT: Settings → Plugins → + → Add custom MCP server. Developer mode is no longer needed. Connection: Server URL (not "Tunnel", that is OpenAI's own tunnel), URL ends with `/mcp`, Authentication: none.
 - The server logs one line per request; ChatGPT shows up as `openai-mcp/1.0.0`. ChatGPT sometimes answers from web search instead of the tool: tell it "Use Outfit Weather".
 
