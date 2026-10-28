@@ -1,6 +1,13 @@
 // Network calls to Open-Meteo (free, no API key).
 // All the thinking about the weather is in weather.js; here we only download.
+import { createCache } from "./cache.js";
 import { HOURLY_FIELDS, MODELS } from "./weather.js";
+
+// Our host shares its internet address with many apps, so Open-Meteo sometimes says
+// "too many requests" (429). Remembering answers means we ask less often.
+const cityCache = createCache({ ttlMs: 24 * 60 * 60 * 1000 }); // cities don't move
+const forecastCache = createCache({ ttlMs: 3 * 60 * 60 * 1000 }); // kept 3 h, but "fresh" only 30 min
+const FORECAST_FRESH_MS = 30 * 60 * 1000;
 
 const GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search";
 const FORECAST_URL = "https://api.open-meteo.com/v1/forecast";
@@ -45,6 +52,16 @@ async function fetchJson(url) {
 
 // City name -> the best match with coordinates, or a FriendlyError.
 export async function findCity(name) {
+  const key = name.trim().toLowerCase();
+  const cached = cityCache.get(key);
+  if (cached) return cached;
+
+  const place = await downloadCity(name);
+  cityCache.set(key, place);
+  return place;
+}
+
+async function downloadCity(name) {
   const url = `${GEOCODING_URL}?name=${encodeURIComponent(name)}&count=1&language=en&format=json`;
   const data = await fetchJson(url);
   const place = Array.isArray(data?.results) ? data.results[0] : undefined;
@@ -62,6 +79,26 @@ export async function findCity(name) {
 // Hourly forecast for today and tomorrow from all three models in one request.
 // The field names end with the model, like temperature_2m_icon_seamless.
 export async function fetchForecast(place) {
+  // About 1 km precision is plenty for weather and lets nearby requests share one answer
+  const key = `${place.latitude.toFixed(2)},${place.longitude.toFixed(2)}`;
+  const cached = forecastCache.get(key);
+  if (cached && Date.now() - cached.savedAt < FORECAST_FRESH_MS) {
+    return cached.forecast;
+  }
+  try {
+    const forecast = await downloadForecast(place);
+    forecastCache.set(key, { forecast, savedAt: Date.now() });
+    return forecast;
+  } catch (error) {
+    // The service refused or failed: a forecast up to 3 hours old is still much better than nothing
+    if (cached && error instanceof FriendlyError) {
+      return cached.forecast;
+    }
+    throw error;
+  }
+}
+
+async function downloadForecast(place) {
   const url =
     `${FORECAST_URL}?latitude=${place.latitude}&longitude=${place.longitude}` +
     "&current=temperature_2m" + // only to learn the local time of the city
