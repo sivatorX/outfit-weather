@@ -19,7 +19,7 @@ const CARD_HTML = readFileSync(new URL("./widget/outfit-card.html", import.meta.
 // The website and the plugin icon. Files are read once at start; the public address is where Render serves us.
 const PUBLIC_URL = process.env.PUBLIC_URL || "https://outfit-weather.onrender.com";
 // The support email shown on the website. Kept in one place so it is easy to change.
-const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || "support@example.com";
+const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || "outfitweather9@gmail.com";
 
 // Read a website page and fill in the {{...}} blanks
 function sitePage(name) {

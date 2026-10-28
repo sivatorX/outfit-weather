@@ -12,7 +12,8 @@
         "developerName": "sivatorX",
         "category": "Productivity",
         "capabilities": ["Read"],
-        "websiteURL": "https://github.com/sivatorX/outfit-weather",
+        "websiteURL": "https://outfit-weather.onrender.com/",
+        "privacyPolicyURL": "https://outfit-weather.onrender.com/privacy",
         "defaultPrompt": [
           "Use Outfit Weather: what should I wear tomorrow in Bishkek?",
           "Use Outfit Weather: what should I wear today in Paris?"
