@@ -21,7 +21,12 @@ async function fetchJson(url) {
     throw new FriendlyError("Could not reach the weather service. Please try again later.");
   }
   if (!response.ok) {
-    throw new FriendlyError("The weather service is not available right now. Please try again later.");
+    // Log what the service said (no city names), so we can see the reason in the hosting logs
+    const reason = (await response.text().catch(() => "")).slice(0, 200);
+    console.error(`Open-Meteo ${new URL(url).hostname} answered ${response.status}: ${reason}`);
+    throw new FriendlyError(
+      `The weather service is not available right now (code ${response.status}). Please try again later.`
+    );
   }
   try {
     return await response.json();
