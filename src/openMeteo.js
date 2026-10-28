@@ -22,10 +22,18 @@ async function fetchJson(url) {
   }
   if (!response.ok) {
     // Log what the service said (no city names), so we can see the reason in the hosting logs
-    const reason = (await response.text().catch(() => "")).slice(0, 200);
-    console.error(`Open-Meteo ${new URL(url).hostname} answered ${response.status}: ${reason}`);
+    const body = await response.text().catch(() => "");
+    console.error(`Open-Meteo ${new URL(url).hostname} answered ${response.status}: ${body.slice(0, 200)}`);
+    // Open-Meteo explains errors in a "reason" field, e.g. which request limit was hit
+    let reason = "";
+    try {
+      const parsed = JSON.parse(body);
+      if (typeof parsed?.reason === "string") reason = ` ${parsed.reason.slice(0, 160)}`;
+    } catch {
+      // not JSON: keep the short message
+    }
     throw new FriendlyError(
-      `The weather service is not available right now (code ${response.status}). Please try again later.`
+      `The weather service is not available right now (code ${response.status}).${reason || " Please try again later."}`
     );
   }
   try {
