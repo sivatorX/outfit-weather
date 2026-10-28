@@ -1,0 +1,11 @@
+# Render "Blueprint": tells Render how to build and run the server.
+# Render gives the server a permanent HTTPS address and sets the PORT variable itself.
+services:
+  - type: web
+    name: outfit-weather
+    runtime: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /
+    autoDeploy: true # every push to main updates the server
