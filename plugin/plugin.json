@@ -1,0 +1,26 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "outfit-weather",
+  "version": "1.0.0",
+  "description": "What to wear today or tomorrow in any city, from a whole-day forecast averaged over three weather models.",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Outfit Weather",
+        "shortDescription": "What to wear today, from a precise whole-day forecast",
+        "longDescription": "Ask what to wear in any city today or tomorrow. Outfit Weather looks at the whole day from morning to evening: temperature, feels-like, rain, snow and wind, averaged from three weather models (ECMWF, ICON, GFS), and shows a neon card with the outfit.",
+        "developerName": "sivatorX",
+        "category": "Productivity",
+        "capabilities": ["Read"],
+        "websiteURL": "https://github.com/sivatorX/outfit-weather",
+        "defaultPrompt": [
+          "Use Outfit Weather: what should I wear tomorrow in Bishkek?",
+          "Use Outfit Weather: what should I wear today in Paris?"
+        ],
+        "brandColor": "#3ad8ff",
+        "composerIcon": "./assets/icon.png",
+        "logo": "./assets/logo.png"
+      }
+    }
+  }
+}
