@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Outfit Weather</title>
+<style>
+  /* Colors as tokens: dark is the neon look, light keeps it readable on white */
+  :root {
+    --bg: #070d22;
+    --tile: rgba(58, 216, 255, 0.07);
+    --tile-border: rgba(58, 216, 255, 0.24);
+    --border: rgba(58, 216, 255, 0.55);
+    --text: #e8f6ff;
+    --muted: #a9bfe6;
+    --neon: #3ad8ff;
+    --pink: #ff2e88;
+    --warm: #ffaa3c;
+    --glow: 0 0 10px rgba(58, 216, 255, 0.35), inset 0 0 14px rgba(58, 216, 255, 0.08);
+    --text-glow: 0 0 8px rgba(58, 216, 255, 0.7), 0 0 22px rgba(58, 216, 255, 0.35);
+    --pink-glow: 0 0 8px rgba(255, 46, 136, 0.6);
+    color-scheme: dark;
+  }
+  :root[data-theme="light"] {
+    --bg: #f5fbff;
+    --tile: rgba(0, 120, 170, 0.06);
+    --tile-border: rgba(0, 120, 170, 0.22);
+    --border: rgba(0, 140, 200, 0.5);
+    --text: #0b1a33;
+    --muted: #4a5d7e;
+    --neon: #007ab8;
+    --pink: #c8105f;
+    --warm: #b35c00;
+    --glow: 0 0 0 1px rgba(0, 140, 200, 0.08), 0 4px 16px rgba(0, 120, 170, 0.12);
+    --text-glow: none;
+    --pink-glow: none;
+    color-scheme: light;
+  }
+
+  * { box-sizing: border-box; margin: 0; }
+  html, body { background: transparent; }
+  body {
+    font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: var(--text);
+    padding: 2px;
+  }
+
+  .card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    box-shadow: var(--glow);
+    padding: 16px;
+    display: grid;
+    gap: 14px;
+    overflow: hidden;
+  }
+
+  .head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .place { font-size: 17px; font-weight: 700; letter-spacing: 0.02em; }
+  .when { color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; }
+
+  .hero { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .temp {
+    font-size: 40px; font-weight: 800; line-height: 1;
+    color: var(--neon); text-shadow: var(--text-glow);
+    font-variant-numeric: tabular-nums;
+  }
+  .feels { color: var(--muted); font-size: 14px; }
+  .feels b { color: var(--text); font-weight: 600; }
+
+  .parts { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 8px; }
+  .part {
+    background: var(--tile); border: 1px solid var(--tile-border); border-radius: 14px;
+    padding: 10px; text-align: center; display: grid; gap: 2px;
+  }
+  .part-name { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  .part-icon { font-size: 24px; line-height: 1.3; }
+  .part-temp { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .part-feels, .part-weather { font-size: 12px; color: var(--muted); }
+
+  .section-title {
+    font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--pink); text-shadow: var(--pink-glow); margin-bottom: 6px;
+  }
+  .wear { list-style: none; padding: 0; display: grid; gap: 6px; }
+  .wear li { display: grid; grid-template-columns: 28px 1fr; align-items: start; gap: 6px; }
+  .wear .ico { font-size: 18px; line-height: 1.3; text-align: center; }
+  .wear .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; display: block; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    border: 1px solid var(--tile-border); background: var(--tile);
+    border-radius: 999px; padding: 4px 10px; font-size: 13px;
+  }
+
+  .notes { list-style: none; padding: 0; display: grid; gap: 4px; }
+  .notes li { color: var(--warm); font-size: 14px; }
+  .notes li::before { content: "⚠ "; }
+
+  .facts { display: flex; flex-wrap: wrap; gap: 6px 14px; color: var(--muted); font-size: 13px; }
+
+  .stack { display: grid; gap: 14px; }
+  .empty { color: var(--muted); text-align: center; padding: 18px 8px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+  <article class="card" id="card" aria-live="polite">
+    <p class="empty" id="empty">Loading the forecast…</p>
+
+    <div id="content" class="stack" hidden>
+      <header class="head">
+        <h1 class="place" id="place"></h1>
+        <span class="when" id="when"></span>
+      </header>
+
+      <div class="hero">
+        <div class="temp" id="temp"></div>
+        <div class="feels" id="feels"></div>
+      </div>
+
+      <div class="parts" id="parts"></div>
+
+      <section>
+        <h2 class="section-title">What to wear</h2>
+        <ul class="wear" id="wear"></ul>
+      </section>
+
+      <section id="takeBox">
+        <h2 class="section-title">Take with you</h2>
+        <div class="chips" id="take"></div>
+      </section>
+
+      <ul class="notes" id="notes"></ul>
+
+      <div class="facts" id="facts"></div>
+    </div>
+  </article>
+
+<script>
+  // ---------- Small helpers ----------
+  const $ = (id) => document.getElementById(id);
+
+  // Data comes from outside, so check every field before using it
+  const isNum = (v) => typeof v === "number" && Number.isFinite(v);
+  const str = (v) => (typeof v === "string" ? v : "");
+  const deg = (v) => (isNum(v) ? `${Math.round(v)}°` : "–");
+
+  // A short emoji for the weather text from the server ("light rain", "overcast"...)
+  function weatherIcon(text) {
+    const t = str(text).toLowerCase();
+    if (t.includes("thunder")) return "⛈️";
+    if (t.includes("snow")) return "🌨️";
+    if (t.includes("rain") || t.includes("drizzle") || t.includes("shower")) return "🌧️";
+    if (t.includes("fog")) return "🌫️";
+    if (t.includes("overcast")) return "☁️";
+    if (t.includes("partly")) return "⛅";
+    if (t.includes("mostly clear")) return "🌤️";
+    if (t.includes("clear")) return "☀️";
+    return "🌡️";
+  }
+
+  function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text; // textContent: never treat data as HTML
+    return node;
+  }
+
+  function formatDate(iso) {
+    // "2026-10-28" -> "Wed, Oct 28". Noon UTC so the day never shifts by time zone.
+    const d = new Date(`${str(iso)}T12:00:00Z`);
+    if (Number.isNaN(d.getTime())) return "";
+    return d.toLocaleDateString(document.documentElement.lang || "en", {
+      weekday: "short", month: "short", day: "numeric", timeZone: "UTC",
+    });
+  }
+
+  // ---------- Drawing the card ----------
+  let lastData = null;
+
+  function render(data) {
+    const summary = data && typeof data === "object" ? data.summary : null;
+    const outfit = data && typeof data === "object" ? data.outfit : null;
+    if (!summary || !outfit) return; // nothing usable yet: keep the "Loading" text
+    lastData = data;
+
+    $("empty").hidden = true;
+    $("content").hidden = false;
+
+    $("place").textContent = str(data.place);
+    const dayWord = data.day === "tomorrow" ? "Tomorrow" : "Today";
+    const date = formatDate(data.date);
+    const hours = summary.from && summary.to ? ` · ${str(summary.from)}–${str(summary.to)}` : "";
+    $("when").textContent = `${dayWord}${date ? ", " + date : ""}${hours}`;
+
+    $("temp").textContent = `${deg(summary.minTemperature)}…${deg(summary.maxTemperature)}C`;
+    $("feels").replaceChildren("Feels like ", el("b", "", `${deg(summary.minApparent)}…${deg(summary.maxApparent)}`));
+
+    // Morning / afternoon / evening tiles
+    const parts = Array.isArray(summary.parts) ? summary.parts : [];
+    $("parts").replaceChildren(
+      ...parts.map((part) => {
+        const tile = el("div", "part");
+        tile.append(
+          el("span", "part-name", str(part.name)),
+          el("span", "part-icon", weatherIcon(part.weather)),
+          el("span", "part-temp", deg(part.temperature)),
+          el("span", "part-feels", `feels ${deg(part.apparent)}`),
+          el("span", "part-weather", str(part.weather))
+        );
+        tile.querySelector(".part-icon").setAttribute("aria-hidden", "true");
+        return tile;
+      })
+    );
+    $("parts").hidden = parts.length === 0;
+
+    // What to wear
+    const rows = [
+      ["🧥", "Top", outfit.top],
+      ["👖", "Bottom", outfit.bottom],
+      ["👟", "Shoes", outfit.shoes],
+    ].filter((row) => str(row[2]));
+    $("wear").replaceChildren(
+      ...rows.map(([icon, label, value]) => {
+        const li = el("li");
+        const ico = el("span", "ico", icon);
+        ico.setAttribute("aria-hidden", "true");
+        const text = el("span");
+        text.append(el("span", "label", label), document.createTextNode(str(value)));
+        li.append(ico, text);
+        return li;
+      })
+    );
+
+    // Things to take
+    const take = Array.isArray(outfit.accessories) ? outfit.accessories.filter((a) => str(a)) : [];
+    $("take").replaceChildren(...take.map((item) => el("span", "chip", item)));
+    $("takeBox").hidden = take.length === 0;
+
+    // Warnings (wind, big swing between morning and afternoon...)
+    const notes = Array.isArray(outfit.notes) ? outfit.notes.filter((n) => str(n)) : [];
+    $("notes").replaceChildren(...notes.map((note) => el("li", "", note)));
+    $("notes").hidden = notes.length === 0;
+
+    // Small facts at the bottom
+    const facts = [];
+    if (isNum(summary.maxRainChance)) facts.push(`💧 Rain chance up to ${Math.round(summary.maxRainChance)}%`);
+    if (str(summary.firstWetTime)) facts.push(`☔ Wet from ${str(summary.firstWetTime)}`);
+    if (isNum(summary.maxWind)) {
+      const gusts = isNum(summary.maxGusts) ? `, gusts ${Math.round(summary.maxGusts)}` : "";
+      facts.push(`💨 Wind ${Math.round(summary.maxWind)}${gusts} m/s`);
+    }
+    $("facts").replaceChildren(...facts.map((fact) => el("span", "", fact)));
+
+    reportSize();
+  }
+
+  // ---------- Theme (light / dark) ----------
+  function applyTheme(theme) {
+    if (theme === "light" || theme === "dark") {
+      document.documentElement.dataset.theme = theme;
+    }
+  }
+  // Until the host tells us, follow the system setting
+  applyTheme(window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+
+  // ---------- Talking to ChatGPT: MCP Apps standard (postMessage + JSON-RPC) ----------
+  let nextId = 0;
+  const waiting = new Map();
+
+  function send(message) {
+    window.parent.postMessage({ jsonrpc: "2.0", ...message }, "*");
+  }
+  function request(method, params) {
+    return new Promise((resolve, reject) => {
+      const id = ++nextId;
+      waiting.set(id, { resolve, reject });
+      send({ id, method, params });
+    });
+  }
+  function notify(method, params) {
+    send({ method, params });
+  }
+
+  // Tell the host how tall the card is, so there is no scrollbar inside the chat
+  let lastHeight = 0;
+  function reportSize() {
+    const height = Math.ceil(document.documentElement.getBoundingClientRect().height);
+    if (height === lastHeight) return;
+    lastHeight = height;
+    notify("ui/notifications/size-changed", { width: document.documentElement.clientWidth, height });
+    if (window.openai && typeof window.openai.notifyIntrinsicHeight === "function") {
+      window.openai.notifyIntrinsicHeight(height);
+    }
+  }
+  if ("ResizeObserver" in window) new ResizeObserver(reportSize).observe(document.body);
+
+  function applyHostContext(context) {
+    if (context && typeof context === "object") applyTheme(context.theme);
+  }
+
+  window.addEventListener("message", (event) => {
+    if (event.source !== window.parent) return; // only listen to the chat that hosts us
+    const msg = event.data;
+    if (!msg || msg.jsonrpc !== "2.0") return;
+
+    // An answer to one of our requests
+    if (msg.id !== undefined && waiting.has(msg.id)) {
+      const { resolve, reject } = waiting.get(msg.id);
+      waiting.delete(msg.id);
+      msg.error ? reject(msg.error) : resolve(msg.result);
+      return;
+    }
+    if (msg.method === "ui/notifications/tool-result") render(msg.params?.structuredContent);
+    if (msg.method === "ui/notifications/host-context-changed") applyHostContext(msg.params);
+  });
+
+  request("ui/initialize", {
+    appInfo: { name: "outfit-weather-card", version: "1.0.0" },
+    appCapabilities: {},
+    protocolVersion: "2026-01-26",
+  })
+    .then((result) => {
+      applyHostContext(result?.hostContext);
+      notify("ui/notifications/initialized", {});
+    })
+    .catch(() => {
+      // Older hosts may not speak MCP Apps; window.openai below still works there
+    });
+
+  // ---------- ChatGPT extras (window.openai), kept for older ChatGPT versions ----------
+  function readOpenAiGlobals() {
+    const openai = window.openai;
+    if (!openai) return;
+    applyTheme(openai.theme);
+    if (openai.toolOutput && openai.toolOutput !== lastData) render(openai.toolOutput);
+  }
+  readOpenAiGlobals();
+  window.addEventListener("openai:set_globals", readOpenAiGlobals);
+</script>
+</body>
+</html>
