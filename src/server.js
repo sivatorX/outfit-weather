@@ -16,6 +16,17 @@ const CARD_URI = "ui://widget/outfit-card-v2.html";
 const CARD_MIME_TYPE = "text/html;profile=mcp-app";
 const CARD_HTML = readFileSync(new URL("./widget/outfit-card.html", import.meta.url), "utf8");
 
+// The plugin icon. Files are read once at start; the public address is where Render serves us.
+const PUBLIC_URL = process.env.PUBLIC_URL || "https://outfit-weather.onrender.com";
+const STATIC_FILES = {
+  "/icon.png": { type: "image/png", body: readFileSync(new URL("../assets/icon-512.png", import.meta.url)) },
+  "/icon.svg": { type: "image/svg+xml", body: readFileSync(new URL("../assets/icon.svg", import.meta.url)) },
+};
+const ICONS = [
+  { src: `${PUBLIC_URL}/icon.png`, mimeType: "image/png", sizes: ["512x512"] },
+  { src: `${PUBLIC_URL}/icon.svg`, mimeType: "image/svg+xml", sizes: ["any"] },
+];
+
 // The work of the tool, without anything MCP-specific
 async function outfitToday({ city, day }) {
   const place = await findCity(city);
@@ -37,7 +48,7 @@ async function outfitToday({ city, day }) {
 
 // A fresh MCP server per request: "stateless" mode, simple and safe for hosting.
 function buildMcpServer() {
-  const server = new McpServer({ name: "outfit-weather", version: "1.0.0" });
+  const server = new McpServer({ name: "outfit-weather", title: "Outfit Weather", version: "1.0.0", icons: ICONS });
 
   // The card's HTML. It uses no outside scripts, fonts or APIs, so the security policy (CSP) stays empty.
   server.registerResource("outfit-card", CARD_URI, { title: "Outfit card", mimeType: CARD_MIME_TYPE }, async () => ({
@@ -105,6 +116,13 @@ const httpServer = createServer(async (req, res) => {
   if (path === "/" && req.method === "GET") {
     res.writeHead(200, { "Content-Type": "text/plain; charset=utf-8" });
     res.end("Outfit Weather MCP server is running. MCP endpoint: /mcp\n");
+    return;
+  }
+  const file = STATIC_FILES[path];
+  if (file && req.method === "GET") {
+    // The icon rarely changes, so browsers may keep it for a day
+    res.writeHead(200, { "Content-Type": file.type, "Cache-Control": "public, max-age=86400" });
+    res.end(file.body);
     return;
   }
   if (path !== "/mcp") {
