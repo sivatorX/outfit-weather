@@ -246,7 +246,11 @@
 
     // Small facts at the bottom
     const facts = [];
-    if (isNum(summary.maxRainChance)) facts.push(`💧 Rain chance up to ${Math.round(summary.maxRainChance)}%`);
+    if (isNum(summary.maxRainChance)) {
+      // "up to 0%" sounds odd, so small chances become a plain "no rain"
+      const chance = Math.round(summary.maxRainChance);
+      facts.push(chance < 5 ? "💧 No rain expected" : `💧 Rain chance up to ${chance}%`);
+    }
     if (str(summary.firstWetTime)) facts.push(`☔ Wet from ${str(summary.firstWetTime)}`);
     if (isNum(summary.maxWind)) {
       const gusts = isNum(summary.maxGusts) ? `, gusts ${Math.round(summary.maxGusts)}` : "";

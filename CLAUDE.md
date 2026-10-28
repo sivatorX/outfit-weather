@@ -57,7 +57,7 @@ It is the author's **third project** ("level 3"). Earlier projects:
 1. ✅ Node.js installed, project folder created.
 2. ✅ MCP server with one tool `outfit_today`, tested with MCP Inspector on this PC (`npm start`, `npm test`, `npm run inspect`).
 3. ✅ Tested inside ChatGPT through a temporary HTTPS tunnel (2026-10-27): ChatGPT called `outfit_today` and showed our numbers.
-4. Neon card UI inside ChatGPT.
+4. ✅ Neon card UI inside ChatGPT (2026-10-28): `src/widget/outfit-card.html`, MCP Apps standard. Bump the `vN` in `CARD_URI` when the card changes.
 5. 🟡 Hosted on Render (free plan): https://outfit-weather.onrender.com/mcp, repo `sivatorX/outfit-weather` (public). Every push to `main` redeploys. Still to do: own domain.
 6. Website: about page, privacy policy, support contact.
 7. Submit to the ChatGPT plugin directory.

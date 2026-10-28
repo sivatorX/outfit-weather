@@ -12,7 +12,7 @@ const PORT = Number(process.env.PORT) || 3000;
 
 // The neon card ChatGPT shows under the answer (MCP Apps standard).
 // ChatGPT caches the card by this address: change "v1" when the HTML changes.
-const CARD_URI = "ui://widget/outfit-card-v1.html";
+const CARD_URI = "ui://widget/outfit-card-v2.html";
 const CARD_MIME_TYPE = "text/html;profile=mcp-app";
 const CARD_HTML = readFileSync(new URL("./widget/outfit-card.html", import.meta.url), "utf8");
 
