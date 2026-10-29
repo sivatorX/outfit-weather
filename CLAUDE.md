@@ -44,6 +44,8 @@ It is the author's **third project** ("level 3"). Earlier projects:
 ## Hosting (Render)
 - Web Service `outfit-weather`, Free instance, build `npm ci`, start `npm start`; Render sets `PORT`. `render.yaml` holds the same settings.
 - Free plan sleeps after 15 minutes without requests; the first request then takes up to about a minute.
+- Render's shared outbound addresses hit Open-Meteo's daily limit (429 "Daily API request limit exceeded"). So Open-Meteo is asked through a Cloudflare Worker (`worker/`, `https://outfit-weather-proxy.arminabizade.workers.dev`, deploy: `cd worker && npx wrangler deploy`, logged in as the author). It only forwards `/geocoding` and `/forecast`; the server falls back to direct calls if it fails, and caches cities (24 h) and forecasts (30 min fresh, 3 h on errors).
+- Optional protection: `wrangler secret put PROXY_KEY` on the Worker + the same value as `OPEN_METEO_PROXY_KEY` in Render → Environment. Not set yet (2026-10-29): the author could not find the Render setting.
 - After changing tools or the card: push, wait for "Live", then Refresh the plugin in ChatGPT. The address never changes.
 
 ## Testing in ChatGPT (temporary tunnel, only for local experiments now)
