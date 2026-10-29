@@ -1,4 +1,4 @@
-// Network calls to Open-Meteo (free, no API key).
+// Network calls to Open-Meteo (free, no API key), directly or through our Cloudflare Worker.
 // All the thinking about the weather is in weather.js; here we only download.
 import { createCache } from "./cache.js";
 import { HOURLY_FIELDS, MODELS } from "./weather.js";
@@ -9,18 +9,38 @@ const cityCache = createCache({ ttlMs: 24 * 60 * 60 * 1000 }); // cities don't m
 const forecastCache = createCache({ ttlMs: 3 * 60 * 60 * 1000 }); // kept 3 h, but "fresh" only 30 min
 const FORECAST_FRESH_MS = 30 * 60 * 1000;
 
-const GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search";
-const FORECAST_URL = "https://api.open-meteo.com/v1/forecast";
+const DIRECT_URLS = {
+  geocoding: "https://geocoding-api.open-meteo.com/v1/search",
+  forecast: "https://api.open-meteo.com/v1/forecast",
+};
 const REQUEST_TIMEOUT_MS = 10000;
+
+// Optional middleman (worker/worker.js on Cloudflare). Both values come from the hosting
+// settings, never from the code: the key is a secret.
+const PROXY_URL = process.env.OPEN_METEO_PROXY_URL?.replace(/\/+$/, "");
+const PROXY_KEY = process.env.OPEN_METEO_PROXY_KEY;
 
 // An error with a message we can show to the user as it is
 export class FriendlyError extends Error {}
 
+// Ask Open-Meteo: through the middleman if we have one, directly if not (or if it fails)
+async function askOpenMeteo(kind, query) {
+  if (PROXY_URL && PROXY_KEY) {
+    try {
+      return await fetchJson(`${PROXY_URL}/${kind}?${query}`, { "x-proxy-key": PROXY_KEY });
+    } catch (error) {
+      if (!(error instanceof FriendlyError)) throw error;
+      console.error(`Proxy failed (${error.message}), trying Open-Meteo directly`);
+    }
+  }
+  return fetchJson(`${DIRECT_URLS[kind]}?${query}`);
+}
+
 // Download JSON. A stuck server must not hang the tool forever, so we use a timeout.
-async function fetchJson(url) {
+async function fetchJson(url, headers = {}) {
   let response;
   try {
-    response = await fetch(url, { signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
+    response = await fetch(url, { headers, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
   } catch (error) {
     if (error.name === "TimeoutError") {
       throw new FriendlyError("The weather service is too slow right now. Please try again in a minute.");
@@ -62,8 +82,7 @@ export async function findCity(name) {
 }
 
 async function downloadCity(name) {
-  const url = `${GEOCODING_URL}?name=${encodeURIComponent(name)}&count=1&language=en&format=json`;
-  const data = await fetchJson(url);
+  const data = await askOpenMeteo("geocoding", `name=${encodeURIComponent(name)}&count=1&language=en&format=json`);
   const place = Array.isArray(data?.results) ? data.results[0] : undefined;
   if (!place || typeof place.latitude !== "number" || typeof place.longitude !== "number") {
     throw new FriendlyError(`I could not find a city called "${name}". Check the spelling or add the country.`);
@@ -99,13 +118,13 @@ export async function fetchForecast(place) {
 }
 
 async function downloadForecast(place) {
-  const url =
-    `${FORECAST_URL}?latitude=${place.latitude}&longitude=${place.longitude}` +
+  const query =
+    `latitude=${place.latitude}&longitude=${place.longitude}` +
     "&current=temperature_2m" + // only to learn the local time of the city
     `&hourly=${HOURLY_FIELDS.join(",")}` +
     `&models=${MODELS.join(",")}` +
     "&forecast_days=2&timezone=auto&wind_speed_unit=ms";
-  const data = await fetchJson(url);
+  const data = await askOpenMeteo("forecast", query);
   if (!data?.hourly || !Array.isArray(data.hourly.time) || typeof data.current?.time !== "string") {
     throw new FriendlyError("The weather service sent incomplete data. Please try again later.");
   }
