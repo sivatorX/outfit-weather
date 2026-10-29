@@ -15,9 +15,13 @@ const DIRECT_URLS = {
 };
 const REQUEST_TIMEOUT_MS = 10000;
 
-// Optional middleman (worker/worker.js on Cloudflare). Both values come from the hosting
-// settings, never from the code: the key is a secret.
-const PROXY_URL = process.env.OPEN_METEO_PROXY_URL?.replace(/\/+$/, "");
+// Middleman on Cloudflare (worker/worker.js). The address is not a secret, so it has a default.
+// OPEN_METEO_PROXY_URL="" in the hosting settings turns it off. The optional key is a secret,
+// so it only ever comes from the hosting settings.
+const PROXY_URL = (process.env.OPEN_METEO_PROXY_URL ?? "https://outfit-weather-proxy.arminabizade.workers.dev").replace(
+  /\/+$/,
+  ""
+);
 const PROXY_KEY = process.env.OPEN_METEO_PROXY_KEY;
 
 // An error with a message we can show to the user as it is
@@ -25,9 +29,10 @@ export class FriendlyError extends Error {}
 
 // Ask Open-Meteo: through the middleman if we have one, directly if not (or if it fails)
 async function askOpenMeteo(kind, query) {
-  if (PROXY_URL && PROXY_KEY) {
+  if (PROXY_URL) {
     try {
-      return await fetchJson(`${PROXY_URL}/${kind}?${query}`, { "x-proxy-key": PROXY_KEY });
+      const headers = PROXY_KEY ? { "x-proxy-key": PROXY_KEY } : {};
+      return await fetchJson(`${PROXY_URL}/${kind}?${query}`, headers);
     } catch (error) {
       if (!(error instanceof FriendlyError)) throw error;
       console.error(`Proxy failed (${error.message}), trying Open-Meteo directly`);
