@@ -3,24 +3,89 @@
   "name": "outfit-weather",
   "version": "1.0.0",
   "description": "What to wear today or tomorrow in any city, from a whole-day forecast averaged over three weather models.",
+  "author": {
+    "name": "sivatorX",
+    "url": "https://outfit-weather.onrender.com/"
+  },
   "extensions": {
     "com.openai": {
       "interface": {
         "displayName": "Outfit Weather",
-        "shortDescription": "What to wear today, from a precise whole-day forecast",
-        "longDescription": "Ask what to wear in any city today or tomorrow. Outfit Weather looks at the whole day from morning to evening: temperature, feels-like, rain, snow and wind, averaged from three weather models (ECMWF, ICON, GFS), and shows a neon card with the outfit.",
+        "shortDescription": "What to wear, by the weather",
+        "longDescription": "Ask what to wear in any city today or tomorrow. Outfit Weather looks at the whole day from 07:00 to 21:00, not just one number: temperature, feels-like, rain, snow and wind, averaged from three weather models (ECMWF, ICON and GFS) via Open-Meteo. You get a short answer and a neon card with the top, bottom and shoes to wear, what to take with you (umbrella, hat, gloves) and warnings like a cold morning or rain in the afternoon. Free, no account, no tracking.",
         "developerName": "sivatorX",
         "category": "Productivity",
-        "capabilities": ["Read"],
-        "websiteURL": "https://outfit-weather.onrender.com/",
-        "privacyPolicyURL": "https://outfit-weather.onrender.com/privacy",
-        "defaultPrompt": [
-          "Use Outfit Weather: what should I wear tomorrow in Bishkek?",
-          "Use Outfit Weather: what should I wear today in Paris?"
+        "capabilities": [
+          "Read"
         ],
-        "brandColor": "#3ad8ff",
+        "websiteURL": "https://outfit-weather.onrender.com/",
+        "supportURL": "https://outfit-weather.onrender.com/support",
+        "privacyPolicyURL": "https://outfit-weather.onrender.com/privacy",
+        "termsOfServiceURL": "https://outfit-weather.onrender.com/terms",
+        "defaultPrompt": [
+          "What should I wear tomorrow in Bishkek?",
+          "What should I wear today in Paris?",
+          "Do I need an umbrella in London tomorrow?"
+        ],
+        "brandColor": "#0081b8",
+        "brandColorDark": "#3ad8ff",
         "composerIcon": "./assets/icon.png",
         "logo": "./assets/logo.png"
+      },
+      "review": {
+        "test_cases": {
+          "positive": [
+            {
+              "description": "Outfit for tomorrow in a named city",
+              "prompt": "What should I wear tomorrow in Bishkek?",
+              "tools_triggered": "outfit_today",
+              "expected_behavior": "Calls outfit_today with city Bishkek and day tomorrow. Shows the card for Bishkek, Kyrgyzstan with tomorrow's temperature range, feels-like, morning/afternoon/evening tiles, what to wear and what to take."
+            },
+            {
+              "description": "Outfit for today",
+              "prompt": "I'm in Paris today, what should I wear?",
+              "tools_triggered": "outfit_today",
+              "expected_behavior": "Calls outfit_today with city Paris and day today. Shows today's remaining hours for Paris, France and the outfit advice."
+            },
+            {
+              "description": "Rain question answered with the forecast",
+              "prompt": "Do I need an umbrella in London tomorrow?",
+              "tools_triggered": "outfit_today",
+              "expected_behavior": "Calls outfit_today with city London and day tomorrow. The answer says whether rain is expected (umbrella in 'Take with you' and the time rain starts if it is), based on the card's rain chance."
+            },
+            {
+              "description": "City with country",
+              "prompt": "What to wear in Osh, Kyrgyzstan tomorrow? I'll be outside all day.",
+              "tools_triggered": "outfit_today",
+              "expected_behavior": "Calls outfit_today with city 'Osh, Kyrgyzstan' and day tomorrow. Shows the card for Osh with the whole-day range and layering advice if mornings are much colder than afternoons."
+            },
+            {
+              "description": "Jacket question in natural language",
+              "prompt": "Is it a jacket day in New York today?",
+              "tools_triggered": "outfit_today",
+              "expected_behavior": "Calls outfit_today with city New York and day today. The answer says whether a jacket is needed, matching the 'Top' line of the card."
+            }
+          ],
+          "negative": [
+            {
+              "description": "General knowledge, no weather",
+              "prompt": "What is the capital of France?"
+            },
+            {
+              "description": "Fashion advice that does not depend on weather",
+              "prompt": "What should I wear to a job interview?"
+            },
+            {
+              "description": "Creative writing",
+              "prompt": "Write a short poem about autumn."
+            }
+          ]
+        },
+        "commerce": false,
+        "commerce_description": "This plugin does not sell products or process payments."
+      },
+      "publication": {
+        "release_notes": "First version: outfit advice for today or tomorrow in any city, with a card."
       }
     }
   }

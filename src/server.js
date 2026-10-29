@@ -12,7 +12,7 @@ const PORT = Number(process.env.PORT) || 3000;
 
 // The neon card ChatGPT shows under the answer (MCP Apps standard).
 // ChatGPT caches the card by this address: change "v1" when the HTML changes.
-const CARD_URI = "ui://widget/outfit-card-v2.html";
+const CARD_URI = "ui://widget/outfit-card-v3.html";
 const CARD_MIME_TYPE = "text/html;profile=mcp-app";
 const CARD_HTML = readFileSync(new URL("./widget/outfit-card.html", import.meta.url), "utf8");
 
@@ -39,10 +39,19 @@ const CARD_PREVIEW_HTML = CARD_HTML.replace(
     ', notifyIntrinsicHeight: (height) => parent.postMessage({ type: "card-height", height }, "*") };</script>\n<script>'
 );
 
+// OpenAI checks that the domain is ours by reading a token at this address.
+// The token is not a secret: paste the one from the OpenAI plugin portal here.
+const OPENAI_APPS_CHALLENGE = process.env.OPENAI_APPS_CHALLENGE || "";
+
 const HTML = "text/html; charset=utf-8";
 const STATIC_FILES = {
   "/": { type: HTML, body: sitePage("index.html") },
   "/privacy": { type: HTML, body: sitePage("privacy.html") },
+  "/terms": { type: HTML, body: sitePage("terms.html") },
+  ...(OPENAI_APPS_CHALLENGE && {
+    // Only the token, as plain text: that is what OpenAI expects
+    "/.well-known/openai-apps-challenge": { type: "text/plain; charset=utf-8", body: OPENAI_APPS_CHALLENGE },
+  }),
   "/support": { type: HTML, body: sitePage("support.html") },
   "/card-preview": { type: HTML, body: CARD_PREVIEW_HTML },
   "/style.css": { type: "text/css; charset=utf-8", body: sitePage("style.css") },
@@ -90,7 +99,8 @@ function buildMcpServer() {
         mimeType: CARD_MIME_TYPE,
         text: CARD_HTML,
         _meta: {
-          ui: { prefersBorder: false, csp: { connectDomains: [], resourceDomains: [] } },
+          // domain: our own origin for the card, required by OpenAI for plugins with a UI
+          ui: { prefersBorder: false, domain: PUBLIC_URL, csp: { connectDomains: [], resourceDomains: [] } },
           "openai/widgetDescription":
             "A card with the day's temperature range, feels-like, morning/afternoon/evening weather and the outfit. " +
             "It already shows all the details, so do not repeat them in a long list.",
@@ -113,7 +123,10 @@ function buildMcpServer() {
           .min(1)
           .max(100)
           .describe("City name, optionally with the country, e.g. 'Bishkek' or 'Paris, France'"),
-        day: z.enum(["today", "tomorrow"]).default("today").describe("Which day to dress for"),
+        day: z
+          .enum(["today", "tomorrow"])
+          .default("today")
+          .describe("Which day to dress for: 'tomorrow' if the user says tomorrow, otherwise 'today'"),
       },
       annotations: { readOnlyHint: true, openWorldHint: true, destructiveHint: false },
       _meta: {
