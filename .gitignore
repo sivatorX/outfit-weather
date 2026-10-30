@@ -3,3 +3,6 @@ node_modules/
 
 # Secrets live here, never on GitHub
 .env
+
+# Built packages (made by npm run pack:plugin)
+dist/
