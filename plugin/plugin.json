@@ -12,9 +12,9 @@
       "interface": {
         "displayName": "Outfit Weather",
         "shortDescription": "What to wear, by the weather",
-        "longDescription": "Ask what to wear in any city today or tomorrow. Outfit Weather looks at the whole day from 07:00 to 21:00, not just one number: temperature, feels-like, rain, snow and wind, averaged from three weather models (ECMWF, ICON and GFS) via Open-Meteo. You get a short answer and a neon card with the top, bottom and shoes to wear, what to take with you (umbrella, hat, gloves) and warnings like a cold morning or rain in the afternoon. Free, no account, no tracking.",
+        "longDescription": "Ask what to wear in any city today or tomorrow. Outfit Weather looks at the whole day from 07:00 to 21:00, not just one number: temperature, feels-like, rain, snow and wind, averaged from three weather models (ECMWF, ICON and GFS) via Open-Meteo. You get a short answer and a neon card with the top, bottom and shoes to wear, what to take with you (umbrella, hat, gloves) and warnings like a cold morning or rain in the afternoon. No account needed and no tracking.",
         "developerName": "sivatorX",
-        "category": "Productivity",
+        "category": "Lifestyle",
         "capabilities": [
           "Read"
         ],
