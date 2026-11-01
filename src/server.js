@@ -41,7 +41,7 @@ const CARD_PREVIEW_HTML = CARD_HTML.replace(
 
 // OpenAI checks that the domain is ours by reading a token at this address.
 // The token is not a secret: paste the one from the OpenAI plugin portal here.
-const OPENAI_APPS_CHALLENGE = process.env.OPENAI_APPS_CHALLENGE || "";
+const OPENAI_APPS_CHALLENGE = process.env.OPENAI_APPS_CHALLENGE || "ZVIEISjL8ZCzqYcT5N255bqOkdRjRzaF0Otf7tVxp9o";
 
 const HTML = "text/html; charset=utf-8";
 const STATIC_FILES = {
