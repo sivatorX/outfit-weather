@@ -82,7 +82,8 @@
           ]
         },
         "commerce": false,
-        "commerce_description": "This plugin does not sell products or process payments."
+        "commerce_description": "This plugin does not sell products or process payments.",
+        "demo_recording_url": "https://drive.google.com/file/d/1xj5Ht3z2un-zA8ZbsWpRQpV3geMGT-lo/view?usp=sharing"
       },
       "publication": {
         "release_notes": "First version: outfit advice for today or tomorrow in any city, with a card."
