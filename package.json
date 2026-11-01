@@ -7,7 +7,7 @@
     "start": "node src/server.js",
     "test": "node --test",
     "inspect": "npx @modelcontextprotocol/inspector",
-    "pack:plugin": "cd plugin && tar -a -cf ../dist/outfit-weather-plugin.zip plugin.json mcp.json assets"
+    "pack:plugin": "cd plugin && %SystemRoot%\\System32\\tar.exe -a -cf ../dist/outfit-weather-plugin.zip plugin.json mcp.json assets"
   },
   "keywords": [],
   "author": "",
