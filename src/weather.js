@@ -1,5 +1,6 @@
 // Pure weather logic: data in, data out. No network here,
 // so every function can be tested without the internet.
+import { extras, outfitLevels } from "./texts.js";
 
 // The three models we average. They often disagree a little;
 // the average is usually closer to the truth than any single one.
@@ -244,68 +245,21 @@ export function summarizeDay(dayHours) {
   };
 }
 
+// Upper "feels like" limits of the clothes levels in texts.js (the last level has no limit).
+const LEVEL_LIMITS = [-15, -5, 5, 12, 18, 24];
+
 // The main clothes. The COLDEST "feels like" hour decides,
 // because you wear the same jacket in the morning and in the evening.
-function chooseBaseOutfit(minApparent) {
-  if (minApparent <= -15) {
-    return {
-      top: "thermal base layer, warm sweater and a heavy winter coat",
-      bottom: "thermal leggings under warm trousers",
-      shoes: "insulated winter boots",
-      accessories: ["warm hat", "scarf", "insulated gloves"],
-    };
-  }
-  if (minApparent <= -5) {
-    return {
-      top: "sweater and a winter coat",
-      bottom: "warm trousers",
-      shoes: "warm winter boots",
-      accessories: ["hat", "scarf", "gloves"],
-    };
-  }
-  if (minApparent <= 5) {
-    return {
-      top: "sweater and a warm jacket",
-      bottom: "jeans or warm trousers",
-      shoes: "closed boots or warm sneakers",
-      accessories: ["light hat", "gloves"],
-    };
-  }
-  if (minApparent <= 12) {
-    return {
-      top: "long sleeves and a jacket",
-      bottom: "jeans or trousers",
-      shoes: "closed shoes or sneakers",
-      accessories: [],
-    };
-  }
-  if (minApparent <= 18) {
-    return {
-      top: "long sleeves with a light jacket or sweater",
-      bottom: "jeans or trousers",
-      shoes: "sneakers",
-      accessories: [],
-    };
-  }
-  if (minApparent <= 24) {
-    return {
-      top: "T-shirt, maybe a light layer for later",
-      bottom: "light trousers or a skirt",
-      shoes: "sneakers",
-      accessories: [],
-    };
-  }
-  return {
-    top: "light breathable T-shirt",
-    bottom: "shorts or a light skirt",
-    shoes: "sandals or light sneakers",
-    accessories: [],
-  };
+function chooseBaseOutfit(minApparent, lang) {
+  const found = LEVEL_LIMITS.findIndex((limit) => minApparent <= limit);
+  const level = found === -1 ? LEVEL_LIMITS.length : found;
+  return outfitLevels(lang)[level];
 }
 
-// The advice for the whole day: main clothes + extra notes.
-export function buildOutfit(summary) {
-  const outfit = chooseBaseOutfit(summary.minApparent);
+// The advice for the whole day: main clothes + extra notes, in "en" (default) or "ru".
+export function buildOutfit(summary, lang = "en") {
+  const outfit = chooseBaseOutfit(summary.minApparent, lang);
+  const words = extras(lang);
   const accessories = [...outfit.accessories];
   const notes = [];
 
@@ -314,35 +268,33 @@ export function buildOutfit(summary) {
     summary.totalPrecipitation >= RAIN_AMOUNT_LIMIT;
 
   if (summary.hasSnow && summary.minTemperature !== null && summary.minTemperature <= 2) {
-    notes.push(`Snow expected${summary.firstWetTime ? ` from about ${summary.firstWetTime}` : ""}: wear boots with a good grip.`);
+    notes.push(words.snow(summary.firstWetTime));
   } else if (rainMatters) {
-    accessories.push("umbrella");
-    notes.push(`Rain likely${summary.firstWetTime ? ` from about ${summary.firstWetTime}` : ""}: take an umbrella.`);
+    accessories.push(words.umbrella);
+    notes.push(words.rain(summary.firstWetTime));
     if (summary.totalPrecipitation >= HEAVY_RAIN_LIMIT) {
-      notes.push("A lot of rain: waterproof shoes and a jacket with a hood are better.");
+      notes.push(words.heavyRain);
     }
   }
 
   if (summary.hasStorm) {
-    notes.push("Thunderstorm possible: plan to be indoors when it comes.");
+    notes.push(words.storm);
   }
 
   const windy =
     (summary.maxWind !== null && summary.maxWind >= STRONG_WIND) ||
     (summary.maxGusts !== null && summary.maxGusts >= STRONG_GUSTS);
   if (windy) {
-    notes.push(`Strong wind (gusts up to ${Math.round(summary.maxGusts ?? summary.maxWind)} m/s): a windproof outer layer helps.`);
+    notes.push(words.wind(Math.round(summary.maxGusts ?? summary.maxWind)));
   }
 
   if (summary.maxApparent - summary.minApparent >= BIG_SWING) {
-    notes.push(
-      `It feels ${Math.round(summary.minApparent)}° at the coldest and ${Math.round(summary.maxApparent)}° at the warmest: dress in layers you can take off.`
-    );
+    notes.push(words.swing(Math.round(summary.minApparent), Math.round(summary.maxApparent)));
   }
 
   if (summary.maxApparent >= HOT_DAY) {
-    accessories.push("sunglasses", "cap or sun hat", "water bottle");
-    notes.push("Hot day: drink water and stay in the shade at midday.");
+    accessories.push(...words.hotDayItems);
+    notes.push(words.hot);
   }
 
   return { ...outfit, accessories, notes };

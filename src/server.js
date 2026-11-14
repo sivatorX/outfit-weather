@@ -12,7 +12,7 @@ const PORT = Number(process.env.PORT) || 3000;
 
 // The neon card ChatGPT shows under the answer (MCP Apps standard).
 // ChatGPT caches the card by this address: change "v1" when the HTML changes.
-const CARD_URI = "ui://widget/outfit-card-v3.html";
+const CARD_URI = "ui://widget/outfit-card-v4.html";
 const CARD_MIME_TYPE = "text/html;profile=mcp-app";
 const CARD_HTML = readFileSync(new URL("./widget/outfit-card.html", import.meta.url), "utf8");
 
@@ -80,16 +80,25 @@ async function outfitToday({ city, day }) {
     throw new FriendlyError(`The day in ${placeName} is already over. Ask about tomorrow instead.`);
   }
   const outfit = buildOutfit(summary);
+  // The card picks the language from the user's ChatGPT settings, so it gets both
+  const placeRu = place.ru ? [place.ru.name, place.ru.country].filter(Boolean).join(", ") : placeName;
   return {
     text: buildAnswerText(placeName, day, summary, outfit),
     // Structured data for the neon card (src/widget/outfit-card.html)
-    data: { place: placeName, day, date: targetDate(forecast.currentTime, day), summary, outfit },
+    data: {
+      place: placeName,
+      day,
+      date: targetDate(forecast.currentTime, day),
+      summary,
+      outfit,
+      ru: { place: placeRu, outfit: buildOutfit(summary, "ru") },
+    },
   };
 }
 
 // A fresh MCP server per request: "stateless" mode, simple and safe for hosting.
 function buildMcpServer() {
-  const server = new McpServer({ name: "outfit-weather", title: "Outfit Weather", version: "1.0.0", icons: ICONS });
+  const server = new McpServer({ name: "outfit-weather", title: "Outfit Weather", version: "1.1.0", icons: ICONS });
 
   // The card's HTML. It uses no outside scripts, fonts or APIs, so the security policy (CSP) stays empty.
   server.registerResource("outfit-card", CARD_URI, { title: "Outfit card", mimeType: CARD_MIME_TYPE }, async () => ({

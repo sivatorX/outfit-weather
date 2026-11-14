@@ -97,7 +97,25 @@ async function downloadCity(name) {
     country: typeof place.country === "string" ? place.country : "",
     latitude: place.latitude,
     longitude: place.longitude,
+    ru: await downloadRussianName(name, place),
   };
+}
+
+// The same city's name in Russian ("Бишкек, Кыргызстан") for the Russian card.
+// Only a nice extra: if anything goes wrong, the card simply shows the English name.
+async function downloadRussianName(name, englishPlace) {
+  try {
+    const data = await askOpenMeteo("geocoding", `name=${encodeURIComponent(name)}&count=1&language=ru&format=json`);
+    const place = Array.isArray(data?.results) ? data.results[0] : undefined;
+    const sameCity =
+      place &&
+      Math.abs(place.latitude - englishPlace.latitude) < 0.01 &&
+      Math.abs(place.longitude - englishPlace.longitude) < 0.01;
+    if (!sameCity || typeof place.name !== "string") return null;
+    return { name: place.name, country: typeof place.country === "string" ? place.country : "" };
+  } catch {
+    return null;
+  }
 }
 
 // Hourly forecast for today and tomorrow from all three models in one request.

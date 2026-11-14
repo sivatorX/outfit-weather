@@ -123,12 +123,12 @@
       <div class="parts" id="parts"></div>
 
       <section>
-        <h2 class="section-title">What to wear</h2>
+        <h2 class="section-title" id="wearTitle">What to wear</h2>
         <ul class="wear" id="wear"></ul>
       </section>
 
       <section id="takeBox">
-        <h2 class="section-title">Take with you</h2>
+        <h2 class="section-title" id="takeTitle">Take with you</h2>
         <div class="chips" id="take"></div>
       </section>
 
@@ -146,6 +146,64 @@
   const isNum = (v) => typeof v === "number" && Number.isFinite(v);
   const str = (v) => (typeof v === "string" ? v : "");
   const deg = (v) => (isNum(v) ? `${Math.round(v)}°` : "–");
+
+  // ---------- Language ----------
+  // ChatGPT tells us the user's language (locale, like "ru-RU"). Russian for Russian-speaking
+  // countries, English for everyone else. The server sends the clothes in both languages.
+  const RU_LOCALES = ["ru", "ky", "kk", "be", "tg"];
+  let wanted = "en"; // the user's language
+  let lang = "en"; // the language the card shows now
+
+  function setLocale(locale) {
+    const code = str(locale).toLowerCase().split(/[-_]/)[0];
+    wanted = RU_LOCALES.includes(code) ? "ru" : "en";
+    useLanguage(wanted);
+    if (lastData) render(lastData);
+  }
+
+  function useLanguage(next) {
+    lang = next;
+    document.documentElement.lang = lang;
+    $("wearTitle").textContent = t("wear");
+    $("takeTitle").textContent = t("take");
+    $("empty").textContent = t("loading");
+  }
+
+  const TEXTS = {
+    en: {
+      loading: "Loading the forecast…", wear: "What to wear", take: "Take with you",
+      today: "Today", tomorrow: "Tomorrow", feelsLike: "Feels like ", feels: "feels",
+      top: "Top", bottom: "Bottom", shoes: "Shoes",
+      morning: "morning", afternoon: "afternoon", evening: "evening",
+      noRain: "💧 No rain expected", rainChance: (n) => `💧 Rain chance up to ${n}%`,
+      wetFrom: (time) => `☔ Wet from ${time}`, gusts: (n) => `, gusts ${n}`, wind: (n, g) => `💨 Wind ${n}${g} m/s`,
+    },
+    ru: {
+      loading: "Загружаю прогноз…", wear: "Что надеть", take: "Взять с собой",
+      today: "Сегодня", tomorrow: "Завтра", feelsLike: "Ощущается ", feels: "ощущ.",
+      top: "Верх", bottom: "Низ", shoes: "Обувь",
+      morning: "утро", afternoon: "день", evening: "вечер",
+      noRain: "💧 Без дождя", rainChance: (n) => `💧 Дождь: до ${n}%`,
+      wetFrom: (time) => `☔ Мокро с ${time}`, gusts: (n) => `, порывы ${n}`, wind: (n, g) => `💨 Ветер ${n}${g} м/с`,
+    },
+  };
+  const t = (key) => TEXTS[lang][key] ?? TEXTS.en[key];
+
+  // The server describes the weather in English ("light rain"); this is the Russian for the card
+  const WEATHER_RU = {
+    "clear sky": "ясно", "mostly clear": "почти ясно", "partly cloudy": "переменная облачность",
+    overcast: "пасмурно", fog: "туман", "freezing fog": "ледяной туман",
+    "light drizzle": "лёгкая морось", drizzle: "морось", "heavy drizzle": "сильная морось",
+    "light freezing drizzle": "лёгкая ледяная морось", "freezing drizzle": "ледяная морось",
+    "light rain": "небольшой дождь", rain: "дождь", "heavy rain": "сильный дождь",
+    "light freezing rain": "небольшой ледяной дождь", "freezing rain": "ледяной дождь",
+    "light snow": "небольшой снег", snow: "снег", "heavy snow": "сильный снег", "snow grains": "снежная крупа",
+    "light showers": "небольшой ливень", showers: "ливень", "heavy showers": "сильный ливень",
+    "light snow showers": "небольшой снегопад", "heavy snow showers": "сильный снегопад",
+    thunderstorm: "гроза", "thunderstorm with light hail": "гроза с небольшим градом",
+    "thunderstorm with heavy hail": "гроза с сильным градом", "unknown weather": "погода неизвестна",
+  };
+  const weatherText = (text) => (lang === "ru" ? WEATHER_RU[str(text)] ?? str(text) : str(text));
 
   // A short emoji for the weather text from the server ("light rain", "overcast"...)
   function weatherIcon(text) {
@@ -179,24 +237,30 @@
 
   // ---------- Drawing the card ----------
   let lastData = null;
+  // Until ChatGPT tells us the language, use the browser's
+  setLocale(navigator.language);
 
   function render(data) {
     const summary = data && typeof data === "object" ? data.summary : null;
-    const outfit = data && typeof data === "object" ? data.outfit : null;
+    // Russian clothes and city name when the user speaks Russian. Without Russian data
+    // (older server, the website's example) the whole card stays English, never half and half.
+    const ru = wanted === "ru" && data && data.ru && typeof data.ru === "object" ? data.ru : null;
+    useLanguage(ru ? "ru" : "en");
+    const outfit = ru && ru.outfit && typeof ru.outfit === "object" ? ru.outfit : data && typeof data === "object" ? data.outfit : null;
     if (!summary || !outfit) return; // nothing usable yet: keep the "Loading" text
     lastData = data;
 
     $("empty").hidden = true;
     $("content").hidden = false;
 
-    $("place").textContent = str(data.place);
-    const dayWord = data.day === "tomorrow" ? "Tomorrow" : "Today";
+    $("place").textContent = str(ru && str(ru.place) ? ru.place : data.place);
+    const dayWord = data.day === "tomorrow" ? t("tomorrow") : t("today");
     const date = formatDate(data.date);
     const hours = summary.from && summary.to ? ` · ${str(summary.from)}–${str(summary.to)}` : "";
     $("when").textContent = `${dayWord}${date ? ", " + date : ""}${hours}`;
 
     $("temp").textContent = `${deg(summary.minTemperature)}…${deg(summary.maxTemperature)}C`;
-    $("feels").replaceChildren("Feels like ", el("b", "", `${deg(summary.minApparent)}…${deg(summary.maxApparent)}`));
+    $("feels").replaceChildren(t("feelsLike"), el("b", "", `${deg(summary.minApparent)}…${deg(summary.maxApparent)}`));
 
     // Morning / afternoon / evening tiles
     const parts = Array.isArray(summary.parts) ? summary.parts : [];
@@ -204,11 +268,11 @@
       ...parts.map((part) => {
         const tile = el("div", "part");
         tile.append(
-          el("span", "part-name", str(part.name)),
+          el("span", "part-name", t(str(part.name)) ?? str(part.name)),
           el("span", "part-icon", weatherIcon(part.weather)),
           el("span", "part-temp", deg(part.temperature)),
-          el("span", "part-feels", `feels ${deg(part.apparent)}`),
-          el("span", "part-weather", str(part.weather))
+          el("span", "part-feels", `${t("feels")} ${deg(part.apparent)}`),
+          el("span", "part-weather", weatherText(part.weather))
         );
         tile.querySelector(".part-icon").setAttribute("aria-hidden", "true");
         return tile;
@@ -218,9 +282,9 @@
 
     // What to wear
     const rows = [
-      ["🧥", "Top", outfit.top],
-      ["👖", "Bottom", outfit.bottom],
-      ["👟", "Shoes", outfit.shoes],
+      ["🧥", t("top"), outfit.top],
+      ["👖", t("bottom"), outfit.bottom],
+      ["👟", t("shoes"), outfit.shoes],
     ].filter((row) => str(row[2]));
     $("wear").replaceChildren(
       ...rows.map(([icon, label, value]) => {
@@ -249,12 +313,12 @@
     if (isNum(summary.maxRainChance)) {
       // "up to 0%" sounds odd, so small chances become a plain "no rain"
       const chance = Math.round(summary.maxRainChance);
-      facts.push(chance < 5 ? "💧 No rain expected" : `💧 Rain chance up to ${chance}%`);
+      facts.push(chance < 5 ? t("noRain") : t("rainChance")(chance));
     }
-    if (str(summary.firstWetTime)) facts.push(`☔ Wet from ${str(summary.firstWetTime)}`);
+    if (str(summary.firstWetTime)) facts.push(t("wetFrom")(str(summary.firstWetTime)));
     if (isNum(summary.maxWind)) {
-      const gusts = isNum(summary.maxGusts) ? `, gusts ${Math.round(summary.maxGusts)}` : "";
-      facts.push(`💨 Wind ${Math.round(summary.maxWind)}${gusts} m/s`);
+      const gusts = isNum(summary.maxGusts) ? t("gusts")(Math.round(summary.maxGusts)) : "";
+      facts.push(t("wind")(Math.round(summary.maxWind), gusts));
     }
     $("facts").replaceChildren(...facts.map((fact) => el("span", "", fact)));
 
@@ -302,7 +366,10 @@
   if ("ResizeObserver" in window) new ResizeObserver(reportSize).observe(document.body);
 
   function applyHostContext(context) {
-    if (context && typeof context === "object") applyTheme(context.theme);
+    if (context && typeof context === "object") {
+      applyTheme(context.theme);
+      if (context.locale) setLocale(context.locale);
+    }
   }
 
   window.addEventListener("message", (event) => {
@@ -339,6 +406,7 @@
     const openai = window.openai;
     if (!openai) return;
     applyTheme(openai.theme);
+    if (openai.locale) setLocale(openai.locale);
     if (openai.toolOutput && openai.toolOutput !== lastData) render(openai.toolOutput);
   }
   readOpenAiGlobals();

@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "outfit-weather",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "What to wear today or tomorrow in any city, from a whole-day forecast averaged over three weather models.",
   "author": {
     "name": "sivatorX",

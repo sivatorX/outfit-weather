@@ -99,3 +99,30 @@ test("strong wind note", () => {
 test("summarizeDay of no hours is null", () => {
   assert.equal(summarizeDay([]), null);
 });
+
+test("Russian advice: same clothes level and notes, in Russian", () => {
+  const hourly = fakeHourly({ temperature: () => 15, apparent: () => 14, rainChance: 80, precipitation: 1, code: 63 });
+  const summary = summarizeDay(pickDayHours(buildHours(hourly), "2026-10-27T06:00", "tomorrow"));
+  const en = buildOutfit(summary);
+  const ru = buildOutfit(summary, "ru");
+  assert.equal(ru.top, "длинный рукав и лёгкая куртка или свитер");
+  assert.ok(ru.accessories.includes("зонт"));
+  assert.ok(ru.notes.some((note) => note.includes("примерно с 07:00")));
+  // Same advice, just translated: the same number of things and notes
+  assert.equal(ru.accessories.length, en.accessories.length);
+  assert.equal(ru.notes.length, en.notes.length);
+});
+
+test("every Russian clothes level matches an English one", async () => {
+  const { outfitLevels } = await import("../src/texts.js");
+  const en = outfitLevels("en");
+  const ru = outfitLevels("ru");
+  assert.equal(ru.length, en.length);
+  ru.forEach((level, i) => assert.equal(level.accessories.length, en[i].accessories.length));
+});
+
+test("unknown language falls back to English", () => {
+  const hourly = fakeHourly({ temperature: () => 33, apparent: () => 35 });
+  const summary = summarizeDay(pickDayHours(buildHours(hourly), "2026-10-27T06:00", "today"));
+  assert.deepEqual(buildOutfit(summary, "xx"), buildOutfit(summary));
+});
