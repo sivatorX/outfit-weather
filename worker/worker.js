@@ -5,6 +5,8 @@
 // It only passes on the two Open-Meteo addresses we need, so it can't be used for anything else.
 // If the PROXY_KEY secret is set (`wrangler secret put PROXY_KEY`), requests must also carry it.
 
+const KEEP_AWAKE_URL = "https://outfit-weather.onrender.com/";
+
 const ROUTES = {
   "/geocoding": "https://geocoding-api.open-meteo.com/v1/search",
   "/forecast": "https://api.open-meteo.com/v1/forecast",
@@ -34,5 +36,18 @@ export default {
       status: answer.status,
       headers: { "Content-Type": answer.headers.get("Content-Type") || "application/json" },
     });
+  },
+
+  // Runs on the schedule in wrangler.toml ([triggers] crons).
+  // Render's free plan puts the server to sleep after 15 minutes without requests,
+  // and the first visitor then waits up to a minute. A small knock every 10 minutes keeps it awake.
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(
+      fetch(KEEP_AWAKE_URL, {
+        method: "HEAD",
+        headers: { "User-Agent": "outfit-weather-keep-awake" },
+        signal: AbortSignal.timeout(60_000),
+      }).catch((error) => console.log(`keep-awake failed: ${error}`))
+    );
   },
 };

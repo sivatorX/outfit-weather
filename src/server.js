@@ -122,7 +122,11 @@ function buildMcpServer() {
           .trim()
           .min(1)
           .max(100)
-          .describe("City name, optionally with the country, e.g. 'Bishkek' or 'Paris, France'"),
+          // The city search (Open-Meteo) only understands Latin letters, so "Бишкек" finds nothing
+          .describe(
+            "City name in English (Latin letters), optionally with the country, e.g. 'Bishkek' or 'Paris, France'. " +
+              "If the user wrote the city in another language or alphabet (e.g. 'Бишкек'), translate it to English first."
+          ),
         day: z
           .enum(["today", "tomorrow"])
           .default("today")

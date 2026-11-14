@@ -2,3 +2,7 @@
 name = "outfit-weather-proxy"
 main = "worker.js"
 compatibility_date = "2026-10-01"
+
+# Every 10 minutes: knock on the Render server so it does not fall asleep (see scheduled() in worker.js)
+[triggers]
+crons = ["*/10 * * * *"]
