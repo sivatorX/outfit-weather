@@ -1,5 +1,6 @@
 // The MCP server: ChatGPT (or MCP Inspector) sends requests to /mcp,
 // and we answer with the result of our tool.
+import { timingSafeEqual } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { createServer } from "node:http";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -7,6 +8,11 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { z } from "zod";
 import { fetchForecast, findCity, FriendlyError } from "./openMeteo.js";
 import { buildAnswerText, buildHours, buildOutfit, pickDayHours, summarizeDay, targetDate } from "./weather.js";
+import { createStats } from "./stats.js";
+
+// Anonymous counters per day (numbers only), shown at /stats?key=... when STATS_KEY is set
+const stats = createStats();
+const STATS_KEY = process.env.STATS_KEY ?? "";
 
 const PORT = Number(process.env.PORT) || 3000;
 
@@ -101,7 +107,9 @@ function buildMcpServer() {
   const server = new McpServer({ name: "outfit-weather", title: "Outfit Weather", version: "1.1.0", icons: ICONS });
 
   // The card's HTML. It uses no outside scripts, fonts or APIs, so the security policy (CSP) stays empty.
-  server.registerResource("outfit-card", CARD_URI, { title: "Outfit card", mimeType: CARD_MIME_TYPE }, async () => ({
+  server.registerResource("outfit-card", CARD_URI, { title: "Outfit card", mimeType: CARD_MIME_TYPE }, async () => {
+    stats.bump("cardLoads");
+    return {
     contents: [
       {
         uri: CARD_URI,
@@ -116,7 +124,8 @@ function buildMcpServer() {
         },
       },
     ],
-  }));
+  };
+  });
 
   server.registerTool(
     "outfit_today",
@@ -150,14 +159,17 @@ function buildMcpServer() {
       },
     },
     async (input) => {
+      stats.bump("toolCalls");
       try {
         const result = await outfitToday(input);
+        stats.bump("answers");
         return { content: [{ type: "text", text: result.text }], structuredContent: result.data };
       } catch (error) {
         // Friendly errors go to the user; anything else is our bug, so log it
         if (!(error instanceof FriendlyError)) {
           console.error(error);
         }
+        stats.bump("errors");
         const message = error instanceof FriendlyError ? error.message : "Something went wrong. Please try again.";
         return { content: [{ type: "text", text: message }], isError: true };
       }
@@ -177,6 +189,18 @@ const httpServer = createServer(async (req, res) => {
     const maxAge = file.type.startsWith("image/") ? 86400 : 300;
     res.writeHead(200, { "Content-Type": file.type, "Cache-Control": `public, max-age=${maxAge}` });
     res.end(req.method === "HEAD" ? undefined : file.body);
+    return;
+  }
+  if (path === "/stats" && req.method === "GET") {
+    // Only for the author: the key must match STATS_KEY (set in Render). Without a key the page does not exist.
+    const given = Buffer.from(new URL(req.url, "http://localhost").searchParams.get("key") ?? "");
+    const want = Buffer.from(STATS_KEY);
+    if (!STATS_KEY || given.length !== want.length || !timingSafeEqual(given, want)) {
+      res.writeHead(404).end("Not found\n");
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+    res.end(JSON.stringify(stats.report(), null, 2));
     return;
   }
   if (path !== "/mcp") {
